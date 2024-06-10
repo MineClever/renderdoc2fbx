@@ -23,7 +23,7 @@ from collections import defaultdict
 
 from PySide2 import QtWidgets, QtCore
 
-import qrenderdoc
+import qrenderdoc as qrenderdoc
 
 from .query_dialog import QueryDialog
 from .progress_dialog import MProgressDialog
@@ -416,8 +416,8 @@ def export_fbx(save_path, mapper, data, attr_list, controller):
 
 
 def error_log(func):
-    def wrapper(pyrenderdoc, data):
-        manager = pyrenderdoc.Extensions()
+    def wrapper(pyrenderdoc: qrenderdoc.CaptureContext, data):
+        manager:qrenderdoc.ExtensionManager = pyrenderdoc.Extensions()
         try:
             func(pyrenderdoc, data)
         except:
@@ -429,13 +429,13 @@ def error_log(func):
 
 
 @error_log
-def prepare_export(pyrenderdoc, data):
-    manager = pyrenderdoc.Extensions()
+def prepare_export(pyrenderdoc: qrenderdoc.CaptureContext, data):
+    manager:qrenderdoc.ExtensionManager = pyrenderdoc.Extensions()
     if not pyrenderdoc.HasMeshPreview():
         manager.ErrorDialog("No preview mesh!", "Error")
         return
 
-    mqt = manager.GetMiniQtHelper()
+    mqt:qrenderdoc.MiniQtHelper = manager.GetMiniQtHelper()
     dialog = QueryDialog(mqt)
     # NOTE get input attribute
     if not mqt.ShowWidgetAsDialog(dialog.init_ui()):
@@ -448,12 +448,12 @@ def prepare_export(pyrenderdoc, data):
     current = time.time()
 
     # NOTE Get Data from QTableView directly
-    main_window = pyrenderdoc.GetMainWindow().Widget()
-    table = main_window.findChild(QtWidgets.QTableView, "inTable")
+    main_window:QtWidgets.QWidget = pyrenderdoc.GetMainWindow().Widget()
+    table:QtWidgets.QTableView = main_window.findChild(QtWidgets.QTableView, "inTable")
 
-    model = table.model()
-    row_count = model.rowCount()
-    column_count = model.columnCount()
+    model:QtWidgets._QAbstractItemModel = table.model()
+    row_count:int = model.rowCount()
+    column_count:int = model.columnCount()
     rows = range(row_count)
     columns = range(column_count)
 
@@ -461,7 +461,7 @@ def prepare_export(pyrenderdoc, data):
     attr_list = set()
 
     for _, c in MProgressDialog.loop(columns, status="Collect Mesh Data"):
-        head = model.headerData(c, QtCore.Qt.Horizontal)
+        head:str = model.headerData(c, QtCore.Qt.Horizontal)
         values = [model.data(model.index(r, c)) for r in rows]
         if "." not in head:
             data[head] = values
